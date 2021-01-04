@@ -1,0 +1,259 @@
+<%- include('../partials/header'); %>
+
+<div class="container-fluid">
+  <div class="row">
+    <%- include('../partials/sidebar'); %>
+
+    <main class="ms-sm-auto col-lg-10">
+
+      <% if(!locals.hasDevices) { %>
+        <div class="m-4">
+          <div class="card text-center">
+            <h2 class="card-header">Welcome to the CO2 dashboard!</h2>
+            <div class="card-body">
+              <p class="card-text lead">
+                  It seems like you haven't added any devices yet,<br>so feel free to navigate to <a href="/devices" class="text-decoration-none">devices</a> to create your first device.
+              </p>
+            </div>
+          </div>
+        </div>
+
+      <% } %>
+
+      <% if(locals.hasDevices) { %>
+
+      <h4 class="border-bottom mx-1 mt-4">Realtime data</h4> <span class="text-muted lastUpdated">(Last updated:
+        <%=lastUpdated%>)
+      </span>
+      <div id="sensor-readings" class="row row-cols-1 row-cols-lg-3 gx-3">
+
+        <div class="col mt-4">
+          <div id="co2-reading" class="sensorReadingBox">
+            <div data-feather="cloud"></div>
+            <b class="dataCategory">CO2</b>
+            <div class="data">
+              <%=co2%>
+              <span class="unit">PPM</span>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="col mt-4">
+          <div id="temperature-reading" class="sensorReadingBox">
+            <div data-feather="thermometer"></div>
+            <b class="dataCategory">Temperature</b>
+            <div class="data">
+              <%=temperature%>
+              <span class="unit">°C</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="col mt-4">
+          <div id="humidity-reading" class="sensorReadingBox">
+            <div data-feather="droplet"></div>
+            <b class="dataCategory">Humidity</b>
+            <div class="data">
+              <%=humidity%>
+              <span class="unit">%</span>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+      <!--  
+      SENSOR GRAPHS AND MENU
+      -->
+      <div class="row row-cols-1 gx-3 mt-4 border-top pt-4">
+        <div class="col col-lg-4 mb-3">
+          <div id="sensor-data-menu" class="pt-2 pb-1 px-3">
+            <h3>Device</h3>
+            <div class="dropdown mt-3">
+              <button class="btn btn-light dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                <%= locals.currentDeviceName %> 
+              </button>
+              <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <% for(let i = 0; i < locals.devices.length; i++) { %> 
+                <%   if(locals.devices[i]['deviceName'] !== locals.currentDeviceName) { %>
+                <li><a class="dropdown-item" href="/?d=<%=locals.devices[i]['deviceID']%>&t=<%=locals.timeScale%>"><%=locals.devices[i]['deviceName']%></a></li>
+                <% }} %> 
+              </ul>
+            </div>
+            <h3 class="mt-3">Timeframe</h3>
+              <a class="btn btn-light mx-1 mb-3" href="/?d=<%=locals.currentDeviceID%>&t=10" role="button">10m</a>
+              <a class="btn btn-light mx-1 mb-3" href="/?d=<%=locals.currentDeviceID%>&t=60" role="button">1h</a>
+              <a class="btn btn-light mx-1 mb-3" href="/?d=<%=locals.currentDeviceID%>&t=480" role="button">8h</a>
+              <a class="btn btn-light mx-1 mb-3" href="/?d=<%=locals.currentDeviceID%>&t=1440" role="button">24h</a>
+              <a class="btn btn-light mx-1 mb-3" href="/?d=<%=locals.currentDeviceID%>&t=10080" role="button">7d</a>
+
+          </div>
+        </div>
+
+        <% if(locals.hasSensorRecords) { %>
+
+        <div class="col col-lg-8">
+          <div id="co2-chart" class="border sensor-chart">
+            <canvas id="co2canvas"></canvas>
+          </div>
+
+          <div id="tempHumidity-chart" class="border mt-3 sensor-chart">
+            <canvas id="tempHumiditycanvas"></canvas>
+          </div>
+        </div>
+      
+
+
+
+
+
+
+      <script>
+        var sensorData = <%- JSON.stringify(locals.sensorRecords) %>
+
+            //Convert sensor timestamps into local time
+            for (let i = 0; i < sensorData.length; i++) {
+          let timeStamp = Number(sensorData[i]['timeStamp']);
+          let localTime = new Date(timeStamp).toLocaleString('en-GB').split(',')[1].trim();
+          sensorData[i]['timeStamp'] = localTime;
+        }
+
+        //Reverse order of sensor readings
+        var reversedData = sensorData.reverse();
+
+        var timeLabels = [];
+        var co2Data = [];
+        var temperatureData = [];
+        var humidityData = [];
+
+        for (let i = 0; i < reversedData.length; i++) {
+          timeLabels.push(reversedData[i]['timeStamp']);
+          co2Data.push(reversedData[i]['co2']);
+          temperatureData.push(reversedData[i]['temperature']);
+          humidityData.push(reversedData[i]['humidity']);
+        }
+
+
+        // CO2 CHART
+        var maxco2Val = Math.max.apply(Math, co2Data);
+        var minco2Val = Math.min.apply(Math, co2Data);
+        var ctx = document.getElementById('co2canvas').getContext('2d');
+        var co2Chart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: timeLabels,
+            datasets: [{
+              borderColor: 'rgb(0, 192, 96)',
+              label: 'CO2',
+              pointRadius: 0,
+              data: co2Data,
+              fill: false,
+            }]
+          },
+          options: {
+            animation: {
+              duration: 0 // general animation time
+            },
+            layout: {
+              padding: {
+                left: 0,
+                right: 0,
+                top: 0,
+                bottom: 20
+              }
+            },
+            title: {
+              display: true,
+              text: 'CO2 readings',
+              fontSize: 16
+            },
+            tooltips: {
+              intersect: false
+            },
+            maintainAspectRatio: false,
+            legend: {
+              display: false
+            },
+            scales: {
+              xAxes: [{ display: false }],
+              yAxes: [{
+                ticks: {
+                  suggestedMin: minco2Val - 10,
+                  suggestedMax: maxco2Val + 10
+
+                }
+              }]
+            }
+          }
+        });
+
+
+        //TEMPERATURE / HUMIDITY CHART
+        var ctx2 = document.getElementById('tempHumiditycanvas').getContext('2d');
+        var co2Chart = new Chart(ctx2, {
+          type: 'line',
+          data: {
+            labels: timeLabels,
+            datasets: [{
+              borderColor: 'rgb(255, 187, 0)',
+              label: 'Temperature',
+              pointRadius: 0,
+              data: temperatureData,
+              fill: false,
+            },
+            {
+              borderColor: 'rgb(0, 151, 227)',
+              label: 'Humidity',
+              pointRadius: 0,
+              data: humidityData,
+              fill: false,
+            }]
+          },
+          options: {
+            animation: {
+              duration: 0 // general animation time
+            },
+            layout: {
+              padding: {
+                left: 0,
+                right: 0,
+                top: 0,
+                bottom: 20
+              }
+            },
+            title: {
+              display: true,
+              text: 'Temperature / Humidity readings',
+              fontSize: 16
+            },
+            tooltips: {
+              intersect: false
+            },
+            maintainAspectRatio: false,
+            legend: {
+              display: false
+            },
+            scales: {
+              xAxes: [{ display: false }],
+              yAxes: [{
+                ticks: {
+
+                }
+              }]
+            }
+          }
+        });
+      </script>
+      <% } %>
+      <% } %>
+    </div>
+    </main>
+  </div>
+</div>
+
+<%- include('../partials/footer'); %>
+</body>
+
+</html>

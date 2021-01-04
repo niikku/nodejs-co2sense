@@ -1,0 +1,104 @@
+<%- include('../partials/header'); %>
+
+<div class="container-fluid">
+  <div class="row">
+    <%- include('../partials/sidebar'); %>
+
+    <main class="ms-sm-auto col-lg-10 px-md-4 pt-4">
+      <script>
+        var deviceToRemove = "";
+
+        function setDeviceToRemove(device) {
+          deviceToRemove = device;
+          $('#formDeviceID').val(device);
+        }
+
+        function deleteDevice() {
+          alert(deviceToRemove);
+        }
+      </script>
+
+      <a class="btn btn-primary btn-lg mb-4" data-bs-toggle="collapse" href="#addDeviceForm" role="button"
+        aria-expanded="false" aria-controls="collapseExample">
+        Add device
+      </a>
+
+      <div class="collapse" id="addDeviceForm">
+        <div class="card card-body col-sm-8 col-xl-5 mb-4">
+
+          <form action="/addDevice" method="POST">
+            <h1 class="h3 mb-4 fw-normal">Add device</h1>
+            <label for="inputUsername" class="visually-hidden">Device name</label>
+            <input type="text" id="inputUsername" name="devicePublicName" class="form-control mb-3"
+              placeholder="Device name" required autofocus>
+            <label for="inputPassword" class="visually-hidden">Device location</label>
+            <input type="text" id="inputPassword" name="deviceLocation" class="form-control mb-3"
+              placeholder="Device location" required>
+            <button class="w-100 btn btn-lg btn-primary mb-3" type="submit">Add device</button>
+          </form>
+
+        </div>
+      </div>
+
+      <h4 class="border-bottom pb-3 mb-3">My Devices</h4>
+      <div class="table-responsive py-0 border">
+        <table class="table table-striped table-sm table-hover align-middle">
+          <thead class="px-3">
+            <tr>
+              <th>Device ID</th>
+              <th>Device Name</th>
+              <th>Device Location</th>
+              <th>Options</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% devices.forEach(function(device){ %>
+            <tr>
+              <td>
+                <span class="font-monospace align-middle"><%=device.deviceID%></span>
+                <div class="copybutton"><button type="button" class="btn btn-sm btn-outline-primary">Copy</button></div>
+              </td>
+              <td>
+                <%=device.deviceName%>
+              </td>
+              <td>
+                <%=device.deviceLocation%>
+              </td>
+              <td><button class="btn-sm btn-danger" onclick="setDeviceToRemove('<%= device.deviceID %>')"
+                  data-bs-toggle="modal" data-bs-target="#staticBackdrop">Delete</button></td>
+            </tr>
+            <% }); %>
+
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Modal -->
+      <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+        aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="staticBackdropLabel">Delete device</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              Are you sure you want to delete this device? This cannot be undone.
+            </div>
+            <div class="modal-footer">
+              <form action="/removeDevice" method="POST">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <input type="hidden" id="formDeviceID" name="deviceID" value="">
+                <button class="btn btn-danger" type="submit">Delete</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+<%- include('../partials/footer'); %>
+</body>
+
+</html>

@@ -1,0 +1,203 @@
+@media (max-width: 767.98px) {
+
+}
+
+body {
+  font-size: .875rem;
+}
+
+.feather {
+  width: 16px;
+  height: 16px;
+  vertical-align: text-bottom;
+}
+
+.btn:focus,.btn:active {
+  outline: none !important;
+  box-shadow: none;
+}
+
+#sensor-data-menu {
+  background: rgb(0,132,209);
+  background: linear-gradient(90deg, rgba(0,132,209,1) 0%, rgba(0,152,228,1) 100%);
+}
+
+#sensor-data-menu button {
+  font-size:1rem;
+}
+
+.copybutton {
+  display:inline;
+  position:relative;
+  margin-top:10px;
+  margin-left:1rem;
+}
+
+#co2-reading {
+  background: rgb(0,192,96);
+  background: linear-gradient(90deg, rgba(0,192,96,1) 0%, rgba(0,214,107,1) 100%); 
+}
+
+#temperature-reading {
+  background: rgb(255,174,0);
+  background: linear-gradient(90deg, rgba(255,174,0,1) 0%, rgba(255,196,0,1) 100%); 
+}
+
+#humidity-reading {
+  background: rgb(0,132,209);
+  background: linear-gradient(90deg, rgba(0,132,209,1) 0%, rgba(0,152,228,1) 100%); 
+}
+
+.sensorReadingBox {
+  padding: 5px 0px 5px 15px;
+  color:rgb(255, 255, 255);
+  background-color:rgb(0, 192, 96);
+  font-size:1.4rem;
+  font-weight:200;
+  position:relative;
+}
+
+.sensorReadingBox .data {
+  font-size:2.5rem;
+  font-weight:600;
+}
+
+.sensorReadingBox .unit {
+  font-weight:300;
+}
+
+.sensorReadingBox .feather {
+  width: 60px;
+  height: 60px;
+  position:absolute;
+  right:20px;
+  top:50%;
+  margin-top:-30px;
+}
+
+#sensor-data-menu {
+  background-color:rgb(0, 147, 233);
+  color:white;
+  display:block;
+  position:relative;
+}
+
+.sensor-chart {
+  display:block;
+  position:relative;
+  height:300px;
+}
+
+.sidebar {
+  position: fixed;
+  top: 1rem;
+  /* rtl:raw:
+  right: 0;
+  */
+  bottom: 0;
+  /* rtl:remove */
+  left: 0;
+  z-index: 100; /* Behind the navbar */
+  padding: 48px 0 0; /* Height of navbar */
+  box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+}
+
+.dataCategory {
+  color: rgba(255,255,255,0.75);
+
+}
+
+.lastUpdated {
+  display:inline;
+  margin-left:0.2rem;
+}
+
+.table-responsive .table thead {
+  background-color:black;
+  color:white;
+  font-size:1.0rem;
+}
+
+.table-responsive .table {
+  margin-bottom:0px;
+}
+
+.sidebar-sticky {
+  position: relative;
+  top: 0;
+  height: calc(100vh - 48px);
+  padding-top: .5rem;
+  overflow-x: hidden;
+  overflow-y: auto; /* Scrollable contents if viewport is shorter than content. */
+}
+
+.sidebar .nav-link {
+	vertical-align:baseline;
+  font-weight: 500;
+  font-size:1.3em;
+  color: #333;
+}
+
+.sidebar .redText{
+  color: rgb(209, 0, 0);
+}
+
+.sidebar .nav-link .feather {
+  margin-right: 4px;
+  color: inherit;
+}
+
+.sidebar .nav-link.active {
+  color: #007bff;
+}
+
+.sidebar .nav-link:hover .feather,
+.sidebar .nav-link.active .feather {
+  color: inherit;
+}
+
+.sidebar-heading {
+  font-size: .75rem;
+  text-transform: uppercase;
+}
+
+/*
+ * Navbar
+ */
+
+.navbar-brand {
+  padding-top: .75rem;
+  padding-bottom: .75rem;
+  font-size: 1rem;
+  background-color: rgba(0, 0, 0, .25);
+  box-shadow: inset -1px 0 0 rgba(0, 0, 0, .25);
+}
+
+.navbar .navbar-toggler {
+  top: .25rem;
+  right: 1rem;
+}
+
+.navbar .form-control {
+  padding: .75rem 1rem;
+  border-width: 0;
+  border-radius: 0;
+}
+
+.form-control-dark {
+  color: #fff;
+  background-color: rgba(255, 255, 255, .1);
+  border-color: rgba(255, 255, 255, .1);
+}
+
+.form-control-dark:focus {
+  border-color: transparent;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, .25);
+}
+
+.logout-nav {
+	vertical-align:baseline;
+  font-weight: 500;
+  font-size:1.3em;
+  color: rgb(153, 15, 15);
+}
