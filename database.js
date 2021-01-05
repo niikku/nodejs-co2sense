@@ -35,71 +35,73 @@ function addRecord(timestamp, deviceID, username, co2, temperature, humidity) {
 function getLatestRecord(deviceID) {
 
     return new Promise((resolve, reject) => {
-
-        let sensorReading = {};
-
         try {
+            let sensorReading = {};
             let stream = databases[deviceID].createReadStream({ reverse: true, limit: 1 })
             stream.on('data', (data) => {
                 sensorReading = data.value;
             })
             stream.on('end', function () {
-                if(sensorReading['timeStamp'] === undefined) {
+                if (sensorReading['timeStamp'] === undefined) {
                     reject('Could not fetch latest sensor record, no sensor readings available');
                 } else {
-                resolve(sensorReading);
+                    resolve(sensorReading);
                 }
             })
         } catch (error) {
-            reject(error);
+            reject(new Error(error));
         }
     });
 }
 
-//Returns an array with a series of device sensor records
-function getRecords(deviceID, recordLimit) {
+/**
+ * Returns an array of sensor readings
+ * @param deviceID The device ID of the device to remove
+ * @param timeScale The amount of minutes to fetch into the past
+ */
+function getRecords(deviceID, timeScale) {
 
     return new Promise((resolve, reject) => {
 
-        const maxRecords = 100; //We want to send an array with max 100 samples
-        let records = [];
-        let sensorReading = {};
+        let currentTime = String(Date.now());
+        let timeToGoBack = timeScale * 60000; //Convert minutes into milliseconds
+        let startTime = currentTime - timeToGoBack; //startTime is where we want to start capturing data
 
-        //Calculate the ratio between the records requested and the set limit
-        let recordRatio = Math.round(recordLimit/maxRecords);
-        
+        let samples = timeScale * 6; //Calculate how many samples we'll roughly process, sensor sends every 10 seconds
+        const maxRecords = 100; //We want to send an array with max 100 samples
+        let recordRatio = Math.round(samples / maxRecords); //Calculate the ratio between the records requested and the set limit
+
         let i = 1;
 
         try {
-            let stream = databases[deviceID].createReadStream({ reverse: true, limit: recordLimit })
+            let records = [];
+            let stream = databases[deviceID].createReadStream({ gt: startTime });
+
             stream.on('data', (data) => {
-
                 //If the amount of records requested is under the limit, just add them all as normal
-                if(recordLimit <= maxRecords) {
-                    sensorReading = data.value;
-                    records.push(sensorReading);
+                if (samples <= maxRecords) {
+                    records.push(data.value);
                 } else {
-                    //If the amount of records requested is above the limit, we skip some data samples
-
+                    //If the amount of records requested is above the limit, we need to skip some samples
                     //If i == 1, then we push the sensor reading into the array
-                    if(i == 1) {
-                        sensorReading = data.value;
-                        records.push(sensorReading);
-                    } 
-                    //Increment i
-                    if(i < recordRatio) {
+                    if (i == 1) {
+                        records.push(data.value);
+                    }
+                    //Increment i every cycle
+                    if (i < recordRatio) {
                         i++
-                    //i is now equal to the ratio which means we've skipped enough samples, reset back to 1
+                        //i is now equal to the ratio which means we've skipped enough samples, reset back to 1
                     } else {
                         i = 1;
                     }
                 }
-            })
+            });
+
             stream.on('end', function () {
                 resolve(records);
-            })
+            });
         } catch (error) {
-            reject(error);
+            reject(new Error(error));
         }
     });
 }

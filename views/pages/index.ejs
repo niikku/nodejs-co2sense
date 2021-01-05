@@ -87,7 +87,6 @@
               <a class="btn btn-light mx-1 mb-3" href="/?d=<%=locals.currentDeviceID%>&t=60" role="button">1h</a>
               <a class="btn btn-light mx-1 mb-3" href="/?d=<%=locals.currentDeviceID%>&t=480" role="button">8h</a>
               <a class="btn btn-light mx-1 mb-3" href="/?d=<%=locals.currentDeviceID%>&t=1440" role="button">24h</a>
-              <a class="btn btn-light mx-1 mb-3" href="/?d=<%=locals.currentDeviceID%>&t=10080" role="button">7d</a>
 
           </div>
         </div>
@@ -120,19 +119,16 @@
           sensorData[i]['timeStamp'] = localTime;
         }
 
-        //Reverse order of sensor readings
-        var reversedData = sensorData.reverse();
-
         var timeLabels = [];
         var co2Data = [];
         var temperatureData = [];
         var humidityData = [];
 
-        for (let i = 0; i < reversedData.length; i++) {
-          timeLabels.push(reversedData[i]['timeStamp']);
-          co2Data.push(reversedData[i]['co2']);
-          temperatureData.push(reversedData[i]['temperature']);
-          humidityData.push(reversedData[i]['humidity']);
+        for (let i = 0; i < sensorData.length; i++) {
+          timeLabels.push(sensorData[i]['timeStamp']);
+          co2Data.push(sensorData[i]['co2']);
+          temperatureData.push(sensorData[i]['temperature']);
+          humidityData.push(sensorData[i]['humidity']);
         }
 
 
