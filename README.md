@@ -90,3 +90,27 @@ This module is responsible for handing everything related to devices and users. 
 
 ### database.js
 This module is responsible for loading the LevelDB database and storing/retrieving data. During startup it will load all databases in the `db` directory. It has functions for storing sensor data but also retrieving a series of records with configurable timespan.
+
+## Objects
+This application uses certain object structures which might be useful to understand. The next chapter goes through a few of them to explain how data is stored.
+
+### User object
+Each user has its own JSON file in the `/data/users/` directory with the filename equal to their username. The file has the following structure:
+```json
+{
+"password":"your-password",
+"email":"yourname@email.com",
+"devices":[]
+}
+```
+As you can see, the `"devices"` property is an array which holds device objects, which are described below.
+
+### Device object
+When a user creates a device, a unique device ID is created, and a device object is added to the users JSON file. An example of a device object can be seen here:
+```json
+{
+"deviceID":"51c36256-6fcd-4113-afa5-0d07a6781a93",
+"deviceName":"Bedroom CO2 sensor",
+"deviceLocation":"Bedroom"
+}
+```
