@@ -6,7 +6,7 @@ A Node.js server to process and visualize data from ESP32-based CO2 sensors
 ## Table of Contents
 - [Features](#features)
 - [Getting started](#getting-started)
-- [Folder structure](#folder-structure)
+- [Directory structure](#directory-structure)
 - [JS files](#js-files)
 - [Objects](#objects)
 
@@ -64,3 +64,29 @@ const String serverURL = "http://localhost:3000/api";   //The IP address of the 
 ### Viewing your data
 After a few seconds, the ESP32 will start transmitting data to your server. Make sure any potential firewall will allow HTTP requests to port 3000.
 You can go to the dashboard to view the data.
+
+## Directory structure
+
+### /data/
+The `data` directory is currently only used to store users in JSON format. This is in the /data/users/ directory
+
+### /db/
+The `db` directory stores all sensor readings with LevelDB. Each device has it's own directory where levelDB stores the data.
+
+### /public/
+The `public` directory stores all static content which Express will serve. This is used for serving the required CSS and JS files for the web page.
+
+### /views/
+The `views` directory contains EJS files which Express renders into HTML. In the sub-directory `pages` you will find all the full HTML pages which are used. There is also a folder called `partials` which are re-usable snippets of HTML code such as the footer, header, sidebar etc.
+
+## JS files
+The following chapter will try to explain with as few words as possible what the function is of each JS file
+
+### main.js
+This is the file that Node.js will execute, and this file is responsible for importing all requires modules, configuring Express and all the route handlers can also be found in this file. Most of the functionality is contained in this file. Express routes will eventually be put into a separate file for readability.
+
+### userManagement.js
+This module is responsible for handing everything related to devices and users. It has functions to add/remove users, add/remove devices and to perform certain authentication functions. This module is fully promise-based and will store each user under their own JSON file. Each device also gets stored with the corresponding users JSON file.
+
+### database.js
+This module is responsible for loading the LevelDB database and storing/retrieving data. During startup it will load all databases in the `db` directory. It has functions for storing sensor data but also retrieving a series of records with configurable timespan.
