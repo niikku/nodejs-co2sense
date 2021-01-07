@@ -130,3 +130,7 @@ Ideally, users and devices should perhaps be stored separately, using a database
 
 ### Storage of sensor readings
 I really wanted to use a time-series database such as [InfluxDB](https://www.influxdata.com/time-series-database/) but once again, did not want to bother people with setting up this database or having to pay money for their cloud service. A time-series database would be perfect for storing repetitive sensor readings, but since I was aiming for ease-of-use and simplicity, I opted for using LevelDB using the [Level](https://www.npmjs.com/package/level) package. Which requires no installation. I found LevelDB to be fast enough for now, however this solution is not suited for a production environment.
+
+### Session-management
+To authenticate users, I use session cookies using [express-session](https://www.npmjs.com/package/express-session).
+I believe that under the current implementation, this solution is secure and doesn't allow for session hijacking. Every time the server starts, a random key is generated to sign each session cookie sent to the client. This prevents the common problem of using a session secret called 'my-secret' which can then allow manufacturing of session cookies. The downside is that every time you restart the server, every user has to log-in again, but this wasn't a big problem to me.
