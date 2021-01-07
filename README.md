@@ -9,6 +9,7 @@ A Node.js server to process and visualize data from ESP32-based CO2 sensors
 - [Directory structure](#directory-structure)
 - [JS files](#js-files)
 - [Objects](#objects)
+- [Security and Performance](#security-and-performance)
 
 ## Features
 - __Express framework:__ Responsible for handling all HTTP requests
@@ -114,3 +115,18 @@ When a user creates a device, a unique device ID is created, and a device object
 "deviceLocation":"Bedroom"
 }
 ```
+
+## Security and Performance
+This project was mostly built during my Christmas holiday and was a huge learning experience for me. Therefore, basic security features are currently available but not all implemented. The most important is that the web server should support HTTPS through TLS, and this is already supported in the firmware too. By using HTTPS, all the traffic between the server -> client is encrypted and can't be monitored to then later be exploited. I will write some of my current thoughts about security and performance choices below:
+
+### Password storage
+Currently all passwords are written in plaintext in the user JSON file, and this will have to eventually be a hashed version of the password using a salt. I have left this feature out for development purposes but this should not take long to implement using for example [Bcrypt](https://www.npmjs.com/package/bcrypt)
+
+### Device security and authentication
+Every time a CO2 sensor sends a HTTP/HTTPS request to the server, they need to also send their device ID and the username of the owner. The server will only allow sensor readings if the unique device ID matches the username. The worst thing that could happen is that someone sees your device ID and tries to impersonate you by sending messages under your username, but this will not happen unless you accidentally share your device ID (which you shouldn't). As long as they don't have access to your account, they won't be able to see your sensor readings.
+
+### User account storage
+Ideally, users and devices should perhaps be stored separately, using a database such as [MongoDB](https://www.mongodb.com/) or many other alternatives. I chose actively to avoid this because I wanted a NodeJS application that required minimum effort to set up. Installing MongoDB and having to worry about security and accounts is a step I wanted to avoid. Therefore all users and devices are now stored in JSON files
+
+### Storage of sensor readings
+I really wanted to use a time-series database such as [InfluxDB](https://www.influxdata.com/time-series-database/) but once again, did not want to bother people with setting up this database or having to pay money for their cloud service. A time-series database would be perfect for storing repetitive sensor readings, but since I was aiming for ease-of-use and simplicity, I opted for using LevelDB using the [Level](https://www.npmjs.com/package/level) package. Which requires no installation. I found LevelDB to be fast enough for now, however this solution is not suited for a production environment.
