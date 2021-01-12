@@ -16,7 +16,7 @@ A Node.js server to process and visualize data from ESP32-based CO2 sensors
 - __User registration:__ Allowing people to easily register and view their sensor readings
 - __LevelDB database:__ Simple and fast key-value storage for sensor readings
 - __Bootstrap front-end:__ Simple and responsive UI
-- __Amazon AWS MQTT:__ Push sensor readings to Amazon AWS and use this data in realtime
+- __MQTT bridge:__ Push sensor readings to MQTT broker of your choice
 
 ## Getting started
 ### Installation
