@@ -9,28 +9,14 @@ var client = null;
 var connected = false;
 
 function connect() {
-  if(MQTT_URL === undefined || MQTT_USERNAME === undefined || MQTT_PASSWORD === undefined || MQTT_TOPICNAME === undefined) {
-    console.log('MQTT credentials are not configured, so MQTT will not be enabled.');
-    return;
-  }
-  
+
   console.log('Connecting to MQTT broker...');
 
-  client = mqtt.connect(MQTT_URL, {
-    username: MQTT_USERNAME,
-    password: MQTT_PASSWORD
-  })
+  client = mqtt.connect(MQTT_URL);
 
   client.on('connect', function () {
+    connected = true;
     console.log('Connected to MQTT broker.');
-    client.subscribe(MQTT_TOPICNAME, function (err) {
-      if (err) {
-        console.log('Error subscribing to MQTT topic!');
-      } else {
-        console.log('Subscribed to MQTT topic.');
-        connected = true;
-      }
-    })
   })
 
   client.on('message', function (topic, message) {
@@ -43,9 +29,11 @@ function connect() {
 
 }
 
-function publish(message) {
+function publish(deviceID, message) {
   if (connected) {
-    client.publish(MQTT_TOPICNAME, message);
+    let topicName = deviceID + "/co2";
+
+    client.publish(topicName, message);
   }
 
 }

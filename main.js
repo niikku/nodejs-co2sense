@@ -283,7 +283,7 @@ app.post('/api', async (req, res) => {
       let currentTime = String(Date.now());
       database.addRecord(currentTime, deviceID, username, co2, temperature, humidity);
       res.status(200).send('OK');
-      mqttClient.publish(`${deviceID},${co2},${temperature},${humidity}`);
+      mqttClient.publish(deviceID,`${co2},${temperature},${humidity}`);
     } else {
       res.status(401).send('ERROR: This device is not authenticated');
     }

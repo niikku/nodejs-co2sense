@@ -1,6 +1,6 @@
-2021/01/12-19:04:44.938 47c Recovering log #233
-2021/01/12-19:04:44.938 47c Level-0 table #235: started
-2021/01/12-19:04:44.941 47c Level-0 table #235: 337 bytes OK
-2021/01/12-19:04:44.946 47c Delete type=0 #233
-2021/01/12-19:04:44.947 47c Delete type=3 #231
-2021/01/12-19:04:44.948 73f4 Moved #224 to level-1 401 bytes OK: files[ 3 38 0 0 0 0 0 ]
+2021/01/12-19:43:55.796 4cd0 Recovering log #251
+2021/01/12-19:43:55.796 4cd0 Level-0 table #253: started
+2021/01/12-19:43:55.799 4cd0 Level-0 table #253: 337 bytes OK
+2021/01/12-19:43:55.804 4cd0 Delete type=0 #251
+2021/01/12-19:43:55.804 4cd0 Delete type=3 #249
+2021/01/12-19:43:55.806 812c Moved #244 to level-1 612 bytes OK: files[ 3 44 0 0 0 0 0 ]
