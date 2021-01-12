@@ -98,7 +98,7 @@ app.get('/', async (req, res) => {
     if (records.length == 0) {
       res.render('./pages/index', {
         hasDevices: true,
-        timeScale: timeScale / 6,
+        timeScale: timeScale,
         devices: userDevices,
         currentDeviceName: currentDeviceName,
         currentDeviceID: deviceID,
@@ -119,7 +119,7 @@ app.get('/', async (req, res) => {
 
     res.render('./pages/index', {
       hasDevices: true,
-      timeScale: timeScale / 6,
+      timeScale: timeScale,
       devices: userDevices,
       currentDeviceName: currentDeviceName,
       currentDeviceID: deviceID,

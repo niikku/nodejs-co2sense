@@ -20,10 +20,12 @@ body {
 #sensor-data-menu {
   background: rgb(0,132,209);
   background: linear-gradient(90deg, rgba(0,132,209,1) 0%, rgba(0,152,228,1) 100%);
+  vertical-align: middle;
 }
 
-#sensor-data-menu button {
-  font-size:1rem;
+#sensor-data-menu span {
+  font-size:1.4rem;
+  font-weight:600;
 }
 
 .copybutton {
@@ -85,7 +87,7 @@ body {
 .sensor-chart {
   display:block;
   position:relative;
-  height:300px;
+  padding-top:10px;
 }
 
 .sidebar {

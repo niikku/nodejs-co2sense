@@ -67,8 +67,8 @@ function getRecords(deviceID, timeScale) {
         let timeToGoBack = timeScale * 60000; //Convert minutes into milliseconds
         let startTime = currentTime - timeToGoBack; //startTime is where we want to start capturing data
 
-        let samples = timeScale * 6; //Calculate how many samples we'll roughly process, sensor sends every 10 seconds
-        const maxRecords = 100; //We want to send an array with max 100 samples
+        let samples = timeScale * 4; //Calculate how many samples we'll roughly process, sensor sends every 10 seconds
+        const maxRecords = 60; //We want to send an array with max 60 samples
         let recordRatio = Math.round(samples / maxRecords); //Calculate the ratio between the records requested and the set limit
 
         let i = 1;

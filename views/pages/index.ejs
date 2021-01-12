@@ -7,24 +7,57 @@
     <main class="ms-sm-auto col-lg-10">
 
       <% if(!locals.hasDevices) { %>
-        <div class="m-4">
-          <div class="card text-center">
-            <h2 class="card-header">Welcome to the CO2 dashboard!</h2>
-            <div class="card-body">
-              <p class="card-text lead">
-                  It seems like you haven't added any devices yet,<br>so feel free to navigate to <a href="/devices" class="text-decoration-none">devices</a> to create your first device.
-              </p>
-            </div>
+      <div class="m-4">
+        <div class="card text-center">
+          <h2 class="card-header">Welcome to the CO2 dashboard!</h2>
+          <div class="card-body">
+            <p class="card-text lead">
+              It seems like you haven't added any devices yet,<br>so feel free to navigate to <a href="/devices"
+                class="text-decoration-none">devices</a> to create your first device.
+            </p>
           </div>
         </div>
+      </div>
 
       <% } %>
 
       <% if(locals.hasDevices) { %>
 
-      <h4 class="border-bottom mx-1 mt-4">Realtime data</h4> <span class="text-muted lastUpdated">(Last updated:
-        <%=lastUpdated%>)
-      </span>
+      <h4 class="border-bottom mx-1 mt-4">Realtime data</h4>
+
+      <div class="row">
+
+        <div class="col my-3">
+          <div id="sensor-data-menu" class="d-flex align-self-center px-3 py-3">
+            <div class="dropdown">
+              <h4>Device</h4>
+              <button class="btn btn-light dropdown-toggle" type="button" id="dropdownMenuButton"
+                data-bs-toggle="dropdown" aria-expanded="false">
+                <%= locals.currentDeviceName %>
+              </button>
+              <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <% for(let i = 0; i < locals.devices.length; i++) { %>
+                <%   if(locals.devices[i]['deviceName'] !== locals.currentDeviceName) { %>
+                <li><a class="dropdown-item"
+                    href="/?d=<%=locals.devices[i]['deviceID']%>&t=<%=locals.timeScale%>"><%=locals.devices[i]['deviceName']%></a>
+                </li>
+                <% }} %>
+              </ul>
+            </div>
+            <div id="timeframe" class="mx-3">
+              <h4>Timeframe</h4>
+              <a class="btn btn-light mx-1" href="/?d=<%=locals.currentDeviceID%>&t=10" role="button">10m</a>
+              <a class="btn btn-light mx-1" href="/?d=<%=locals.currentDeviceID%>&t=60" role="button">1h</a>
+              <a class="btn btn-light mx-1" href="/?d=<%=locals.currentDeviceID%>&t=480" role="button">8h</a>
+              <a class="btn btn-light mx-1" href="/?d=<%=locals.currentDeviceID%>&t=1440" role="button">24h</a>
+            </div>
+
+
+          </div>
+        </div>
+      </div>
+
+
       <div id="sensor-readings" class="row row-cols-1 row-cols-lg-3 gx-3">
 
         <div class="col mt-4">
@@ -67,186 +100,196 @@
       <!--  
       SENSOR GRAPHS AND MENU
       -->
-      <div class="row row-cols-1 gx-3 mt-4 border-top pt-4">
-        <div class="col col-lg-4 mb-3">
-          <div id="sensor-data-menu" class="pt-2 pb-1 px-3">
-            <h3>Device</h3>
-            <div class="dropdown mt-3">
-              <button class="btn btn-light dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
-                <%= locals.currentDeviceName %> 
-              </button>
-              <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <% for(let i = 0; i < locals.devices.length; i++) { %> 
-                <%   if(locals.devices[i]['deviceName'] !== locals.currentDeviceName) { %>
-                <li><a class="dropdown-item" href="/?d=<%=locals.devices[i]['deviceID']%>&t=<%=locals.timeScale%>"><%=locals.devices[i]['deviceName']%></a></li>
-                <% }} %> 
-              </ul>
-            </div>
-            <h3 class="mt-3">Timeframe</h3>
-              <a class="btn btn-light mx-1 mb-3" href="/?d=<%=locals.currentDeviceID%>&t=10" role="button">10m</a>
-              <a class="btn btn-light mx-1 mb-3" href="/?d=<%=locals.currentDeviceID%>&t=60" role="button">1h</a>
-              <a class="btn btn-light mx-1 mb-3" href="/?d=<%=locals.currentDeviceID%>&t=480" role="button">8h</a>
-              <a class="btn btn-light mx-1 mb-3" href="/?d=<%=locals.currentDeviceID%>&t=1440" role="button">24h</a>
-
-          </div>
-        </div>
+      <div class="row row-cols-1 gx-3">
 
         <% if(locals.hasSensorRecords) { %>
 
-        <div class="col col-lg-8">
-          <div id="co2-chart" class="border sensor-chart">
-            <canvas id="co2canvas"></canvas>
-          </div>
-
-          <div id="tempHumidity-chart" class="border mt-3 sensor-chart">
-            <canvas id="tempHumiditycanvas"></canvas>
-          </div>
+        <div class="col col-lg-4">
+          <div id="co2-chart" class="border sensor-chart"></div>
         </div>
-      
+
+        <div class="col col-lg-4">
+          <div id="temperature-chart" class="border sensor-chart"></div>
+        </div>
+
+        <div class="col col-lg-4">
+          <div id="humidity-chart" class="border sensor-chart"></div>
+        </div>
+
+      </div>
 
 
 
 
+      <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
 
       <script>
         var sensorData = <%- JSON.stringify(locals.sensorRecords) %>
 
-            //Convert sensor timestamps into local time
-            for (let i = 0; i < sensorData.length; i++) {
-          let timeStamp = Number(sensorData[i]['timeStamp']);
-          let localTime = new Date(timeStamp).toLocaleString('en-GB').split(',')[1].trim();
-          sensorData[i]['timeStamp'] = localTime;
-        }
+              //Raw data
+              var co2Readings = [];
+        var temperatureReadings = [];
+        var HumidityReadings = [];
 
-        var timeLabels = [];
+        //For the chart
         var co2Data = [];
         var temperatureData = [];
         var humidityData = [];
 
+
         for (let i = 0; i < sensorData.length; i++) {
-          timeLabels.push(sensorData[i]['timeStamp']);
-          co2Data.push(sensorData[i]['co2']);
-          temperatureData.push(sensorData[i]['temperature']);
-          humidityData.push(sensorData[i]['humidity']);
+          let element = [];
+          element.push(Number(sensorData[i]['timeStamp']) + 3600000); //add 1 hour for UTC offset
+          element.push(Number(sensorData[i]['co2']));
+          co2Data.push(element);
+
+          element = [];
+          element.push(Number(sensorData[i]['timeStamp']) + 3600000); //add 1 hour for UTC offset
+          element.push(Number(sensorData[i]['temperature']));
+          temperatureData.push(element);
+
+          element = [];
+          element.push(Number(sensorData[i]['timeStamp']) + 3600000); //add 1 hour for UTC offset
+          element.push(Number(sensorData[i]['humidity']));
+          humidityData.push(element);
+
+          co2Readings.push(Number(sensorData[i]['co2']));
+          temperatureReadings.push(Number(sensorData[i]['temperature']));
+          HumidityReadings.push(Number(sensorData[i]['humidity']));
         }
 
+        var maxCo2 = Math.max.apply(null, co2Readings);
+        var minCo2 = Math.min.apply(null, co2Readings);
 
-        // CO2 CHART
-        var maxco2Val = Math.max.apply(Math, co2Data);
-        var minco2Val = Math.min.apply(Math, co2Data);
-        var ctx = document.getElementById('co2canvas').getContext('2d');
-        var co2Chart = new Chart(ctx, {
-          type: 'line',
-          data: {
-            labels: timeLabels,
-            datasets: [{
-              borderColor: 'rgb(0, 192, 96)',
-              label: 'CO2',
-              pointRadius: 0,
-              data: co2Data,
-              fill: false,
-            }]
+        var maxTemp = Math.max.apply(null, temperatureReadings);
+        var minTemp = Math.min.apply(null, temperatureReadings);
+
+        var maxHumidity = Math.max.apply(null, HumidityReadings);
+        var minHumidity = Math.min.apply(null, HumidityReadings);
+
+
+        var options = {
+
+          chart: {
+            zoom: { enabled: false },
+            type: 'area',
+            toolbar: { show: false },
+            animations: { enabled: false }
+
           },
-          options: {
-            animation: {
-              duration: 0 // general animation time
-            },
-            layout: {
-              padding: {
-                left: 0,
-                right: 0,
-                top: 0,
-                bottom: 20
-              }
-            },
-            title: {
-              display: true,
-              text: 'CO2 readings',
-              fontSize: 16
-            },
-            tooltips: {
-              intersect: false
-            },
-            maintainAspectRatio: false,
-            legend: {
-              display: false
-            },
-            scales: {
-              xAxes: [{ display: false }],
-              yAxes: [{
-                ticks: {
-                  suggestedMin: minco2Val - 10,
-                  suggestedMax: maxco2Val + 10
-
-                }
-              }]
-            }
-          }
-        });
-
-
-        //TEMPERATURE / HUMIDITY CHART
-        var ctx2 = document.getElementById('tempHumiditycanvas').getContext('2d');
-        var co2Chart = new Chart(ctx2, {
-          type: 'line',
-          data: {
-            labels: timeLabels,
-            datasets: [{
-              borderColor: 'rgb(255, 187, 0)',
-              label: 'Temperature',
-              pointRadius: 0,
-              data: temperatureData,
-              fill: false,
-            },
-            {
-              borderColor: 'rgb(0, 151, 227)',
-              label: 'Humidity',
-              pointRadius: 0,
-              data: humidityData,
-              fill: false,
-            }]
+          colors: ['#00c060'],
+          series: [{
+            name: 'CO2',
+            data: co2Data
+          }],
+          stroke: {
+            curve: 'smooth'
           },
-          options: {
-            animation: {
-              duration: 0 // general animation time
+          dataLabels: {
+            enabled: false
+          },
+          xaxis: {
+            type: 'datetime',
+          },
+          yaxis: {
+            tickAmount: 4,
+            max: maxCo2 + 100,
+            min: minCo2 - 100
+          },
+          tooltip: {
+            x: {
+              format: 'dd/MM/yy HH:mm'
             },
-            layout: {
-              padding: {
-                left: 0,
-                right: 0,
-                top: 0,
-                bottom: 20
-              }
-            },
-            title: {
-              display: true,
-              text: 'Temperature / Humidity readings',
-              fontSize: 16
-            },
-            tooltips: {
-              intersect: false
-            },
-            maintainAspectRatio: false,
-            legend: {
-              display: false
-            },
-            scales: {
-              xAxes: [{ display: false }],
-              yAxes: [{
-                ticks: {
-
-                }
-              }]
-            }
           }
-        });
+        };
+
+        var temperatureOptions = {
+
+          chart: {
+            zoom: { enabled: false },
+            type: 'area',
+            toolbar: { show: false },
+            animations: { enabled: false }
+
+          },
+          colors: ['#ffae00'],
+          series: [{
+            name: 'Temperature',
+            data: temperatureData
+          }],
+          stroke: {
+            curve: 'smooth'
+          },
+          dataLabels: {
+            enabled: false
+          },
+          xaxis: {
+            type: 'datetime',
+          },
+          yaxis: {
+
+            forceNiceScale: true,
+            tickAmount: 4,
+            max: maxTemp + 1,
+            min: minTemp - 1
+          },
+          tooltip: {
+            x: {
+              format: 'dd/MM/yy HH:mm'
+            },
+          }
+        };
+
+        var humidityOptions = {
+
+          chart: {
+            zoom: { enabled: false },
+            type: 'area',
+            toolbar: { show: false },
+            animations: { enabled: false }
+
+          },
+          colors: ['#00aeff'],
+          series: [{
+            name: 'Humidity',
+            data: humidityData
+          }],
+          stroke: {
+            curve: 'smooth'
+          },
+          dataLabels: {
+            enabled: false
+          },
+          xaxis: {
+            type: 'datetime',
+          },
+          yaxis: {
+            tickAmount: 4,
+            max: maxHumidity + 10,
+            min: minHumidity - 10
+          },
+          tooltip: {
+            x: {
+              format: 'dd/MM/yy HH:mm'
+            },
+          }
+        };
+
+        var chart = new ApexCharts(document.querySelector("#co2-chart"), options);
+        chart.render();
+        var chart2 = new ApexCharts(document.querySelector("#temperature-chart"), temperatureOptions);
+        chart2.render();
+        var chart3 = new ApexCharts(document.querySelector("#humidity-chart"), humidityOptions);
+        chart3.render();
+
       </script>
+
       <% } %>
       <% } %>
-    </div>
-    </main>
   </div>
+  </main>
+</div>
 </div>
 
 <%- include('../partials/footer'); %>
