@@ -233,6 +233,8 @@ app.post('/login', async (req, res) => {
     return;
   }
 
+  username = username.toLowerCase();
+
   try {
     let authenticated = await userManagement.authenticate(username, password);
 
@@ -310,7 +312,9 @@ app.post('/register', async (req, res) => {
     return;
   }
 
-  let usernameRegex = new RegExp('^([A-Za-z0-9]){4,24}$');
+  username = username.toLowerCase();
+
+  let usernameRegex = new RegExp('^([a-z0-9]){4,24}$');
   let passwordRegex = new RegExp('^[\x21-\x7E]{8,32}$');
 
   if (!usernameRegex.test(username)) {
