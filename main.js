@@ -1,23 +1,25 @@
+require('dotenv').config()
+const logger = require('./logger.js');
 const express = require('express');
-const cors = require("cors");
 const crypto = require('crypto');
 const session = require('express-session');
 const app = express();
-
-const userAuthentication = require('./user-authentication.js');
 const database = require('./database.js');
 const userManagement = require('./userManagement.js');
+const mqttClient = require('./MQTTclient.js');
+const port = process.env.EXPRESS_PORT;
 
-const port = 3000;
-
-app.use(cors());
 app.set('view engine', 'ejs');
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }))
 app.use(express.static(__dirname + '/public'));
 app.use(session({ secret: crypto.randomBytes(32).toString("hex"), resave: false, saveUninitialized: false }));
 
+console.log("Starting CO2 backend...");
+console.log(`NODE_ENV=${process.env.NODE_ENV}`);
+
 database.initializeDB();
+mqttClient.connect();
 
 /*
 Homepage and dashboard
@@ -79,6 +81,7 @@ app.get('/', async (req, res) => {
   }
 
   try {
+
     //Fetch sensor records
     let records = await database.getRecords(deviceID, timeScale)
 
@@ -127,7 +130,7 @@ app.get('/', async (req, res) => {
       humidity: dataRecord['humidity'],
       sensorRecords: records
     });
-    
+
   } catch (err) {
     console.log(err);
     res.render('./pages/index', { hasDevices: false });
@@ -145,13 +148,14 @@ app.get('/devices', async (req, res) => {
   }
 
   //Fetch devices of user
-  let userDevices = await userManagement.getDevices(req.session.username)
-    .catch((err) => {
-      res.render('./pages/devices', { devices: {} });
-      return
-    });
+  try {
+    let userDevices = await userManagement.getDevices(req.session.username)
+    res.render('./pages/devices', { devices: userDevices });
+  } catch (err) {
+    res.render('./pages/devices', { devices: [] });
+    return
+  }
 
-  res.render('./pages/devices', { devices: userDevices });
 });
 
 app.get('/login', (req, res) => {
@@ -163,7 +167,15 @@ app.get('/register', (req, res) => {
 });
 
 app.get('/logout', (req, res) => {
-  req.session.loggedIn = 0;
+  if (loggedIn(req)) {
+
+    let username = req.session.username;
+
+    req.session.destroy(function (err) {
+      logger.info(`User '${username}' has logged out.`);
+    });
+  }
+
   res.redirect("/login");
 });
 
@@ -203,6 +215,7 @@ app.post('/deleteUser', async (req, res) => {
   try {
     await userManagement.deleteUser(userToDelete);
     res.redirect('/admin');
+    logger.info(`User '${userToDelete}' has been deleted by admin.`);
   } catch (err) {
     console.log(new Error(err));
     res.redirect('/admin');
@@ -229,6 +242,7 @@ app.post('/login', async (req, res) => {
       req.session.cookie.maxAge = (24 * 60 * 60 * 1000 * 7);
 
       res.redirect("/");
+      logger.info(`User '${username}' has logged in.`);
       return;
 
     } else {
@@ -259,15 +273,15 @@ app.post('/api', async (req, res) => {
     return;
   }
 
-  let currentTime = String(Date.now());
-
   //Check to see if this device actually exists and belongs to the user
   try {
     let deviceVerified = await userManagement.verifyDevice(username, deviceID);
 
     if (deviceVerified) {
+      let currentTime = String(Date.now());
       database.addRecord(currentTime, deviceID, username, co2, temperature, humidity);
       res.status(200).send('OK');
+      mqttClient.publish(`${deviceID},${co2},${temperature},${humidity}`);
     } else {
       res.status(401).send('ERROR: This device is not authenticated');
     }
@@ -278,10 +292,18 @@ app.post('/api', async (req, res) => {
   }
 });
 
-app.post('/register-post', async (req, res) => {
+app.post('/register', async (req, res) => {
+
   let username = req.body['username'];
   let password = req.body['password'];
   let password2 = req.body['password-repeat'];
+  let recaptcha = req.body['g-recaptcha-response'];
+
+  if (recaptcha === undefined || recaptcha == '') {
+    res.render('./pages/register', { errorMessage: "Please fill in the recaptcha." });
+    logger.warning(`Someone tried to register with username ${username}, but the reCAPTCHA was empty!`);
+    return;
+  }
 
   if (username === undefined || password === undefined || password2 === undefined) {
     res.render('./pages/register', { errorMessage: "Something went wrong, please try again later." });
@@ -314,6 +336,7 @@ app.post('/register-post', async (req, res) => {
 
     await userManagement.addUser(username, password, '');
     res.render('./pages/login', { successMessage: "Your account has been created, you can now sign in." });
+    logger.info(`A new user has been created under the name '${username}'`);
     return;
 
   } catch (err) {
@@ -332,8 +355,10 @@ app.post('/addDevice', async (req, res) => {
   try {
     await userManagement.addDevice(req.body.devicePublicName, req.body.deviceLocation, req.session.username);
     res.redirect('/devices');
+    logger.info(`User '${req.session.username}' has created a new device.`);
   } catch (err) {
     console.log(new Error(err));
+    res.redirect('/devices');
   }
 
 });
@@ -347,6 +372,7 @@ app.post('/removeDevice', async (req, res) => {
   try {
     await userManagement.deleteDevice(req.session.username, req.body.deviceID);
     res.redirect('/devices');
+    logger.info(`User '${req.session.username}' has deleted a device.`);
   } catch (err) {
     console.log(new Error(err));
     res.status(400).send('ERROR');
